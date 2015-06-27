@@ -1,0 +1,71 @@
+CMAKE_MINIMUM_REQUIRED (VERSION 2.8.6)
+PROJECT (snappy)
+
+INCLUDE (CheckIncludeFile)
+
+#set(CMAKE_VERBOSE_MAKEFILE ON)
+
+# version
+SET (SNAPPY_MAJOR 1)
+SET (SNAPPY_MINOR 1)
+SET (SNAPPY_PATCHLEVEL 2)
+
+SET (SRCS snappy.cc snappy-sinksource.cc snappy-stubs-internal.cc snappy-c.cc)
+
+INCLUDE_DIRECTORIES (${CMAKE_CURRENT_BINARY_DIR})
+
+CHECK_INCLUDE_FILE (stdint.h HAVE_STDINT_H)
+CHECK_INCLUDE_FILE (stddef.h HAVE_STDDEF_H)
+CHECK_INCLUDE_FILE (sys/uio.h HAVE_SYS_UIO_H)
+CHECK_INCLUDE_FILE (sys/mman.h HAVE_SYS_MMAN_H)
+CHECK_INCLUDE_FILE (sys/resource.h HAVE_SYS_RESOURCE_H)
+CHECK_INCLUDE_FILE (sys/time.h HAVE_SYS_TIME_H)
+CHECK_INCLUDE_FILE (windows.h HAVE_WINDOWS_H)
+
+IF (HAVE_STDINT_H)
+    SET (ac_cv_have_stdint_h 1)
+ELSE ()
+    SET (ac_cv_have_stdint_h 0)
+ENDIF ()
+
+IF (HAVE_STDDEF_H)
+    SET (ac_cv_have_stddef_h 1)
+ELSE ()
+    SET (ac_cv_have_stddef_h 0)
+ENDIF ()
+
+IF (HAVE_SYS_UIO_H)
+	SET (ac_cv_have_sys_uio_h 1)
+ELSE ()
+	SET (ac_cv_have_sys_uio_h 0)
+ENDIF ()
+
+IF (HAVE_SYS_MMAN_H)
+	ADD_DEFINITIONS (-DHAVE_SYS_MMAN_H)
+ENDIF(HAVE_SYS_MMAN_H)
+
+IF (HAVE_SYS_RESOURCE_H)
+	ADD_DEFINITIONS (-DHAVE_SYS_RESOURCE_H)
+ENDIF (HAVE_SYS_RESOURCE_H)
+
+IF (HAVE_SYS_TIME_H)
+	ADD_DEFINITIONS (-DHAVE_SYS_TIME_H)
+ENDIF (HAVE_SYS_TIME_H)
+
+IF (WIN32)
+	ADD_DEFINITIONS (-DHAVE_WINDOWS_H)
+ENDIF ()
+
+CONFIGURE_FILE (snappy-stubs-public.h.in ${CMAKE_CURRENT_BINARY_DIR}/snappy-stubs-public.h @ONLY)
+
+ADD_LIBRARY (snappy ${SRCS})
+
+ENABLE_TESTING ()
+
+FIND_PACKAGE (GTest)
+ADD_DEFINITIONS (-DHAVE_GTEST)
+INCLUDE_DIRECTORIES (${GTEST_INCLUDE_DIRS})
+ADD_EXECUTABLE (snappy_unittest snappy_unittest.cc snappy-test.cc)
+
+TARGET_LINK_LIBRARIES (snappy_unittest snappy ${GTEST_BOTH_LIBRARIES})
+
